@@ -50,7 +50,7 @@
       <div class="search-row">
         <svg class="search-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         <input type="text" id="url-input" placeholder="Enter a website address, e.g. example.com" autocomplete="url" spellcheck="false" required>
-        <button type="submit" class="btn btn-primary btn-lg" id="analyze-btn">Run 5 reports</button>
+        <button type="submit" class="btn btn-primary btn-lg" id="analyze-btn">Run report</button>
       </div>
 
       <div class="config-row">
@@ -66,10 +66,10 @@
           <span class="config-label">Network profiles</span>
           <div class="chips" id="network-chips">
             <button type="button" class="chip active" data-network="wifi">WiFi</button>
-            <button type="button" class="chip active" data-network="4g">4G</button>
-            <button type="button" class="chip active" data-network="3g">3G</button>
-            <button type="button" class="chip active" data-network="2g">2G</button>
-            <button type="button" class="chip active" data-network="slow-2g">Slow 2G</button>
+            <button type="button" class="chip" data-network="4g">4G</button>
+            <button type="button" class="chip" data-network="3g">3G</button>
+            <button type="button" class="chip" data-network="2g">2G</button>
+            <button type="button" class="chip" data-network="slow-2g">Slow 2G</button>
           </div>
         </div>
       </div>
@@ -191,7 +191,7 @@ init({ storage: { adapter: serverAdapter } });</code></pre>
         <p>
           The <code>fix</code> command (or Claude Code via the bundled MCP server) closes the loop:
           it reads your source files, applies precise patches, re-measures against the original
-          baseline, and only declares success when metrics actually improve by ≥ 3%.
+          baseline, and only declares success when metrics actually improve beyond measurement noise.
         </p>
       </div>
     </div>
@@ -267,7 +267,7 @@ init({ storage: { adapter: serverAdapter } });</code></pre>
         <code>vitalsage fix</code> reads your source directory, asks the AI for precise
         search/replace patches targeting the top-priority finding, applies them, and re-measures the
         page against a pre-change baseline. Safety rails: max 5 patches per attempt, capped file
-        reading, a required <code>--retries</code> budget, and a 3% improvement threshold so
+        reading, a required <code>--retries</code> budget, and an improvement threshold so
         measurement noise never counts as success.
       </p>
     </details>
@@ -341,7 +341,6 @@ init({ storage: { adapter: serverAdapter } });</code></pre>
   <div class="footer-bottom">
     <div class="container">
       <span>© 2026 VitalSage. MIT licensed.</span>
-      <span>LCP · FCP · TTFB · CLS · INP — rated against Google CrUX thresholds.</span>
     </div>
   </div>
 </footer>

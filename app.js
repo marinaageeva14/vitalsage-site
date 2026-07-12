@@ -119,7 +119,7 @@
   /* ---------- config state ---------- */
 
   let device = 'desktop';
-  const networks = new Set(NETWORK_ORDER);
+  const networks = new Set(['wifi']);
 
   const deviceSeg = $('#device-seg');
   deviceSeg.addEventListener('click', (e) => {
@@ -147,7 +147,7 @@
       chip.classList.add('active');
     }
     const n = networks.size;
-    $('#analyze-btn').textContent = `Run ${n} report${n === 1 ? '' : 's'}`;
+    $('#analyze-btn').textContent = n === 1 ? 'Run report' : `Run ${n} reports`;
   });
 
   /* ---------- modal plumbing ---------- */
