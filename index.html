@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VitalSage — Open-source performance analysis with AI-powered fixes</title>
+<meta name="description" content="Run VitalSage on any website: Core Web Vitals, main-thread analysis and actionable suggestions. Open-source SDK, CLI and autonomous fix loop.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23632CA6'/%3E%3Cpath d='M6 20 L11 20 L13.5 12 L17 24 L20 16 L22 20 L26 20' stroke='%23fff' stroke-width='2.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- ============ NAV ============ -->
+<header class="nav">
+  <div class="nav-inner">
+    <a href="#top" class="brand">
+      <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden="true">
+        <rect width="32" height="32" rx="7" fill="#632CA6"/>
+        <path d="M6 20 L11 20 L13.5 12 L17 24 L20 16 L22 20 L26 20" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span>VitalSage</span>
+    </a>
+    <nav class="nav-links">
+      <a href="#analyze">Analyze</a>
+      <a href="#advanced">Go deeper</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a class="btn btn-primary nav-cta" href="https://github.com/marinaageeva14/vitalsage" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27s1.36.09 2 .27c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+      GitHub
+    </a>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ============ HERO / ANALYZE ============ -->
+<section class="hero" id="analyze">
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="container">
+    <h1>Know <em>why</em> your site is slow.<br>Then fix it.</h1>
+    <p class="hero-sub">
+      VitalSage is an open-source performance toolkit: it measures Core Web Vitals and main-thread
+      activity, routes the data through nine rule-based analysis agents, and turns findings into
+      specific, prioritized fixes. Try it on any website right here.
+    </p>
+
+    <form class="search-card" id="analyze-form">
+      <div class="search-row">
+        <svg class="search-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input type="text" id="url-input" placeholder="Enter a website address, e.g. example.com" autocomplete="url" spellcheck="false" required>
+        <button type="submit" class="btn btn-primary btn-lg" id="analyze-btn">Run 5 reports</button>
+      </div>
+
+      <div class="config-row">
+        <div class="config-group">
+          <span class="config-label">Device</span>
+          <div class="seg" id="device-seg" role="tablist" aria-label="Device profile">
+            <button type="button" class="seg-btn active" data-device="desktop" role="tab" aria-selected="true">Desktop <small>1280×800</small></button>
+            <button type="button" class="seg-btn" data-device="tablet" role="tab" aria-selected="false">Tablet <small>768×1024</small></button>
+            <button type="button" class="seg-btn" data-device="mobile" role="tab" aria-selected="false">Mobile <small>375×812</small></button>
+          </div>
+        </div>
+        <div class="config-group">
+          <span class="config-label">Network profiles</span>
+          <div class="chips" id="network-chips">
+            <button type="button" class="chip active" data-network="wifi">WiFi</button>
+            <button type="button" class="chip active" data-network="4g">4G</button>
+            <button type="button" class="chip active" data-network="3g">3G</button>
+            <button type="button" class="chip active" data-network="2g">2G</button>
+            <button type="button" class="chip active" data-network="slow-2g">Slow 2G</button>
+          </div>
+        </div>
+      </div>
+      <p class="search-hint">
+        One VitalSage report per selected network profile — Core Web Vitals, main-thread CPU breakdown
+        and prioritized suggestions, shown exactly like the local CLI report.
+      </p>
+    </form>
+  </div>
+</section>
+
+<!-- ============ GO DEEPER ============ -->
+<section class="section" id="advanced">
+  <div class="container">
+    <p class="kicker">Beyond the browser demo</p>
+    <h2>Want more than a snapshot? Run VitalSage from GitHub.</h2>
+    <p class="section-sub">
+      The web demo gives you lab data for a single page. The full toolkit — installed from the
+      <a href="https://github.com/marinaageeva14/vitalsage" target="_blank" rel="noopener">GitHub repo</a> —
+      drives a real browser across network/device matrices, captures CDP flame-graph traces, monitors
+      real users, and can even fix your code autonomously.
+    </p>
+
+    <div class="cards-3">
+      <article class="card">
+        <div class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="m4 17 6-6-6-6"/><path d="M12 19h8"/></svg>
+        </div>
+        <h3>Comprehensive CLI analysis</h3>
+        <p>
+          Capture live CDP traces with per-function flame charts, run synthetic matrices across
+          5 networks × 3 viewports, and get findings from all nine agents — plus optional AI
+          suggestions from Claude, GPT or Gemini.
+        </p>
+        <pre class="snippet"><code><span class="c"># audit any live URL — zero config</span>
+vitalsage trace --url https://example.com \
+  --runs 5 --full-report --output report.html</code></pre>
+        <a class="card-link" href="https://github.com/marinaageeva14/vitalsage#cli--vitalsage" target="_blank" rel="noopener">CLI reference →</a>
+      </article>
+
+      <article class="card">
+        <div class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </div>
+        <h3>Real User Monitoring</h3>
+        <p>
+          Drop the <code>vitalsage</code> browser SDK into your app to capture real-user Core Web
+          Vitals, long tasks and page context from every session — streamed to your own collection
+          server and analyzed with p75 distributions from actual traffic.
+        </p>
+        <pre class="snippet"><code><span class="c">// runs in your users' browsers</span>
+import { init } from 'vitalsage';
+init({ storage: { adapter: serverAdapter } });</code></pre>
+        <a class="card-link" href="https://github.com/marinaageeva14/vitalsage#browser-sdk--vitalsage" target="_blank" rel="noopener">SDK docs →</a>
+      </article>
+
+      <article class="card">
+        <div class="card-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12a9 9 0 1 1-9-9"/><path d="M21 3v6h-6"/><path d="m9 12 2 2 4-4"/></svg>
+        </div>
+        <h3>Autonomous fix loop</h3>
+        <p>
+          The full cycle: measure → audit → AI-generated source patches → re-measure to verify.
+          VitalSage edits your HTML/CSS/JS, confirms the improvement against a baseline, and retries
+          until metrics move or retries run out.
+        </p>
+        <pre class="snippet"><code>vitalsage fix --url http://localhost:5173 \
+  --source ./src --retries 5 \
+  --ai-provider anthropic --ai-key $KEY</code></pre>
+        <a class="card-link" href="https://github.com/marinaageeva14/vitalsage#fix" target="_blank" rel="noopener">Fix loop docs →</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="section section-alt" id="how-it-works">
+  <div class="container">
+    <p class="kicker">Under the hood</p>
+    <h2>How VitalSage works</h2>
+    <p class="section-sub">
+      Every report — in this demo, the CLI, or production RUM — flows through the same pipeline.
+    </p>
+
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Measure</h3>
+        <p>
+          A real Chromium browser (Playwright) loads the page under emulated network and device
+          profiles, capturing Core Web Vitals — LCP, FCP, TTFB, CLS, INP — plus a CDP flame-graph
+          trace of the main thread. In RUM mode, the browser SDK captures the same data from real
+          user sessions with zero overhead tricks: just <code>PerformanceObserver</code>.
+        </p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Analyze</h3>
+        <p>
+          Nine specialized agents run in parallel over the sessions. Each one is rule-based first —
+          fast, deterministic and free — checking exact thresholds against your data: unsized
+          above-fold images, render-blocking scripts, missing preloads, slow server responses,
+          long-task pileups and more.
+        </p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Suggest</h3>
+        <p>
+          Findings become prioritized suggestions with severity, estimated impact, effort and code
+          examples. Configure an AI provider (Claude, GPT or Gemini) and each agent additionally
+          cross-correlates the full trace with your page context for root-cause answers rules can't
+          reach.
+        </p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Fix &amp; verify</h3>
+        <p>
+          The <code>fix</code> command (or Claude Code via the bundled MCP server) closes the loop:
+          it reads your source files, applies precise patches, re-measures against the original
+          baseline, and only declares success when metrics actually improve by ≥ 3%.
+        </p>
+      </div>
+    </div>
+
+    <div class="agents-panel">
+      <h3>The nine analysis agents</h3>
+      <div class="agents-grid">
+        <div class="agent"><b>lcp</b><span>fetchpriority, preloads, TTFB masking</span></div>
+        <div class="agent"><b>cls</b><span>unsized images, font-swap shifts</span></div>
+        <div class="agent"><b>inp</b><span>interaction latency, 3rd-party head scripts</span></div>
+        <div class="agent"><b>ttfb</b><span>server time, redirects, DNS</span></div>
+        <div class="agent"><b>image</b><span>formats, sizing, lazy-loading</span></div>
+        <div class="agent"><b>font</b><span>preload, crossorigin, font-display</span></div>
+        <div class="agent"><b>render-block</b><span>blocking scripts &amp; stylesheets</span></div>
+        <div class="agent"><b>resource-hint</b><span>preload &amp; preconnect gaps</span></div>
+        <div class="agent"><b>trace</b><span>TBT, long tasks, hot functions</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ FAQ ============ -->
+<section class="section" id="faq">
+  <div class="container container-narrow">
+    <p class="kicker">Questions</p>
+    <h2>FAQ</h2>
+
+    <details class="faq-item" open>
+      <summary>How does the analysis on this page work?</summary>
+      <p>
+        GitHub Pages is a static host, so this demo can't launch VitalSage's Playwright engine
+        server-side. Instead it fetches real lab data for your URL from the Google PageSpeed API,
+        then applies VitalSage's rule-based thresholds and renders the result in the same report
+        format the CLI produces. The report for your selected device baseline is a real lab
+        measurement; the other network profiles are estimates derived from it and labeled as such.
+        For real throttled, multi-run traces, use the CLI from the GitHub repo.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary>What metrics does VitalSage capture?</summary>
+      <p>
+        All Core Web Vitals — LCP, FCP, TTFB, CLS and INP — rated against Google CrUX thresholds,
+        plus main-thread trace metrics: Total Blocking Time, long-task counts, JS execute/compile
+        time, rendering time, forced layouts, style recalcs, DOM node counts, JS heap and (with
+        <code>--full-report</code>) a per-function CPU flame chart.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary>Do I need an AI API key?</summary>
+      <p>
+        No. VitalSage works fully without an LLM — the nine agents are rule-based and produce
+        data-driven findings on their own. An API key (Anthropic, OpenAI or Gemini, or any
+        OpenAI-compatible endpoint) is optional and adds deeper, cross-correlated suggestions plus
+        the autonomous <code>fix</code> loop.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary>How do I set up Real User Monitoring?</summary>
+      <p>
+        Install the <code>vitalsage</code> npm package, call <code>init()</code> with a storage
+        adapter that posts interactions to your collection server (a reference Express + SQLite
+        server ships in the repo), and query <code>/api/audit</code> for streaming analysis of real
+        traffic. The README has copy-paste integrations for vanilla JS, React and Next.js.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary>What does the autonomous fix loop actually change?</summary>
+      <p>
+        <code>vitalsage fix</code> reads your source directory, asks the AI for precise
+        search/replace patches targeting the top-priority finding, applies them, and re-measures the
+        page against a pre-change baseline. Safety rails: max 5 patches per attempt, capped file
+        reading, a required <code>--retries</code> budget, and a 3% improvement threshold so
+        measurement noise never counts as success.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary>Can AI agents like Claude Code use VitalSage?</summary>
+      <p>
+        Yes — the repo ships an MCP server (<code>vitalsage-mcp</code>) exposing six tools:
+        measure, analyze, real-user data fetch, before/after comparison, full route audit and a DOM
+        inspector. Point Claude Code at a URL and it will loop measure → analyze → edit code →
+        verify on its own.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary>What do I need to run it locally?</summary>
+      <p>
+        Node.js 20–22 and pnpm ≥ 9. Clone the repo, <code>pnpm install &amp;&amp; pnpm build</code>,
+        and either use your installed Chrome/Edge (automatic fallback) or download the bundled
+        Chromium. Pages behind login work too, via <code>--browser-channel chrome</code> with a
+        persistent profile.
+      </p>
+    </details>
+
+    <details class="faq-item">
+      <summary>Is it free?</summary>
+      <p>
+        Yes — VitalSage is fully open source under the MIT license. The only optional cost is your
+        own AI provider key if you enable AI-enhanced suggestions or the fix loop.
+      </p>
+    </details>
+  </div>
+</section>
+
+</main>
+
+<!-- ============ FOOTER ============ -->
+<footer class="footer">
+  <div class="container footer-grid">
+    <div class="footer-brand">
+      <a href="#top" class="brand brand-light">
+        <svg viewBox="0 0 32 32" width="26" height="26" aria-hidden="true">
+          <rect width="32" height="32" rx="7" fill="#8b5cf6"/>
+          <path d="M6 20 L11 20 L13.5 12 L17 24 L20 16 L22 20 L26 20" stroke="#fff" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span>VitalSage</span>
+      </a>
+      <p>Open-source browser performance SDK with AI-powered analysis.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <a href="#analyze">Analyze a site</a>
+      <a href="#advanced">CLI &amp; RUM</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="footer-col">
+      <h4>Toolkit</h4>
+      <a href="https://github.com/marinaageeva14/vitalsage#browser-sdk--vitalsage" target="_blank" rel="noopener">Browser SDK</a>
+      <a href="https://github.com/marinaageeva14/vitalsage#cli--vitalsage" target="_blank" rel="noopener">CLI</a>
+      <a href="https://github.com/marinaageeva14/vitalsage#mcp-server--vitalsage-mcp" target="_blank" rel="noopener">MCP server</a>
+      <a href="https://github.com/marinaageeva14/vitalsage#analysis-engine--vitalsage-analysis" target="_blank" rel="noopener">Analysis engine</a>
+    </div>
+    <div class="footer-col">
+      <h4>Project</h4>
+      <a href="https://github.com/marinaageeva14/vitalsage" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/marinaageeva14/vitalsage#get-started" target="_blank" rel="noopener">Get started</a>
+      <a href="https://github.com/marinaageeva14/vitalsage/blob/main/LICENSE" target="_blank" rel="noopener">MIT License</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="container">
+      <span>© 2026 VitalSage. MIT licensed.</span>
+      <span>LCP · FCP · TTFB · CLS · INP — rated against Google CrUX thresholds.</span>
+    </div>
+  </div>
+</footer>
+
+<!-- ============ REPORT MODAL ============ -->
+<div class="modal-overlay" id="report-modal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal-head">
+      <div>
+        <div class="modal-title" id="modal-title">VitalSage Analysis Report</div>
+        <div class="modal-sub" id="modal-sub"></div>
+      </div>
+      <button class="modal-close" id="modal-close" aria-label="Close report">&times;</button>
+    </div>
+    <div class="modal-tabs" id="modal-tabs" hidden></div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
