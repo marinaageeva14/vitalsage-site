@@ -159,10 +159,14 @@
 
   function openModal() {
     overlay.hidden = false;
+    // the page scrollbar lives on <html>, not <body> — lock both,
+    // otherwise the modal shows a second scrollbar next to its own
+    document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
   }
   function closeModal() {
     overlay.hidden = true;
+    document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
     if (loadingTimer) { clearInterval(loadingTimer); loadingTimer = null; }
   }

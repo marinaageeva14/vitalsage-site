@@ -263,23 +263,26 @@ code {
 
 .cards-3 {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
+  /* minmax(0, 1fr): a bare 1fr can't shrink below the snippet's
+     min-content width, which pushed the grid past the viewport */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
 }
 .card {
   background: #fff;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
-  padding: 26px;
+  padding: 20px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 .card:hover { transform: translateY(-3px); box-shadow: 0 4px 6px rgba(27,39,51,0.06), 0 14px 34px rgba(27,39,51,0.1); }
-.card h3 { font-size: 1.08rem; }
-.card p { font-size: 0.92rem; color: var(--muted); flex: 1; }
+.card h3 { font-size: 1.02rem; }
+.card p { font-size: 0.88rem; color: var(--muted); flex: 1; }
 .card-icon {
   width: 42px; height: 42px;
   border-radius: 9px;
@@ -293,14 +296,15 @@ code {
 .snippet {
   background: #0f1117;
   border-radius: 8px;
-  padding: 14px 16px;
+  padding: 12px 14px;
   overflow-x: auto;
+  max-width: 100%;
 }
 .snippet code {
   background: none;
   padding: 0;
   font-family: var(--mono);
-  font-size: 0.76rem;
+  font-size: 0.72rem;
   color: #e2e8f0;
   white-space: pre;
 }
@@ -309,7 +313,7 @@ code {
 /* ---------- how it works ---------- */
 .steps {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 24px;
   margin-bottom: 48px;
 }
@@ -341,7 +345,7 @@ code {
 .agents-panel h3 { font-size: 1.05rem; margin-bottom: 18px; }
 .agents-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
 }
 .agent {
@@ -613,8 +617,8 @@ code {
 /* ---------- responsive ---------- */
 @media (max-width: 920px) {
   .cards-3 { grid-template-columns: 1fr; }
-  .steps { grid-template-columns: repeat(2, 1fr); }
-  .agents-grid { grid-template-columns: repeat(2, 1fr); }
+  .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .agents-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .footer-grid { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 640px) {
