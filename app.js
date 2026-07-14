@@ -115,6 +115,57 @@
   }
 
   function fmtMs(v) { return `${Math.round(v).toLocaleString()}ms`; }
+  function fmtKB(bytes) { return `${Math.round(bytes / 1024).toLocaleString()}KB`; }
+
+  // Middle-truncate a URL so long CDN paths stay readable in one line.
+  function shortUrl(u, max = 90) {
+    if (typeof u !== 'string' || u.length <= max) return u;
+    const head = Math.ceil((max - 1) * 0.6);
+    return `${u.slice(0, head)}…${u.slice(-(max - 1 - head))}`;
+  }
+
+  // Pull the concrete offenders out of a Lighthouse audit's details.items —
+  // the real script URLs, image URLs, third-party origins, or DOM nodes the
+  // audit is complaining about. This is what turns "reduce unused JavaScript"
+  // into "…/vendor.js (90KB unused of 128KB)". Handles the detail shapes PSI
+  // returns: opportunity/table rows keyed by url, node rows (snippet/selector),
+  // third-party rows keyed by entity, and dom-size statistic rows.
+  function concreteOffenders(a, limit = 4) {
+    const items = a && a.details && a.details.items;
+    if (!Array.isArray(items) || !items.length) return [];
+    const out = [];
+    for (const it of items) {
+      // dom-size returns rows like { statistic, value, node } — keep the ones
+      // that name an element (max children / max depth), skip the plain count.
+      if (it.statistic) {
+        const node = it.node && (it.node.nodeLabel || it.node.selector || it.node.snippet);
+        if (node && /child|depth/i.test(it.statistic)) {
+          const val = it.value && typeof it.value === 'object' ? (it.value.value ?? '') : it.value;
+          out.push(`${it.statistic}: ${node}${val ? ` (${val})` : ''}`);
+        }
+        continue;
+      }
+      const node = it.node && (it.node.nodeLabel || it.node.selector || it.node.snippet);
+      let label = it.url || (typeof it.source === 'string' ? it.source : it.source && it.source.url)
+        || it.entity || it.origin || node;
+      if (!label) continue;
+      label = /^https?:/i.test(label) ? shortUrl(label) : String(label);
+      if (typeof it.wastedBytes === 'number') {
+        label += ` (${fmtKB(it.wastedBytes)} unused${typeof it.totalBytes === 'number' ? ` of ${fmtKB(it.totalBytes)}` : ''})`;
+      } else if (typeof it.wastedMs === 'number' && it.wastedMs >= 1) {
+        label += ` (${fmtMs(it.wastedMs)})`;
+      } else if (typeof it.mainThreadTime === 'number' && it.mainThreadTime >= 1) {
+        label += ` (${fmtMs(it.mainThreadTime)} main-thread)`;
+      } else if (typeof it.blockingTime === 'number' && it.blockingTime >= 1) {
+        label += ` (${fmtMs(it.blockingTime)} blocking)`;
+      } else if (typeof it.transferSize === 'number' && it.transferSize > 0) {
+        label += ` (${fmtKB(it.transferSize)})`;
+      }
+      out.push(label);
+      if (out.length >= limit) break;
+    }
+    return out;
+  }
 
   /* ---------- config state ---------- */
 
@@ -371,11 +422,15 @@
 
       const { text, firstLink } = fromMarkdown(a.description);
       const savings = a.details?.overallSavingsMs;
+      const offenders = concreteOffenders(a);
+      const detail = offenders.length
+        ? `${text} Affected: ${offenders.join(', ')}${a.details.items.length > offenders.length ? `, and ${a.details.items.length - offenders.length} more` : ''}.`
+        : text;
       out.push({
         agent: meta.agent,
         severity: a.score < 0.5 ? 'critical' : 'warning',
         title: a.title,
-        detail: text,
+        detail,
         effort: meta.effort,
         confidence: a.score < 0.5 ? 0.9 : 0.7,
         impact: a.displayValue || (savings ? `potential savings of ${fmtMs(savings)}` : 'moderate'),
@@ -394,28 +449,37 @@
       });
     }
     if (cpu.totalBlockingTime >= 300) {
+      // Name the tasks/scripts actually doing the blocking, from the trace audits.
+      const tasks = concreteOffenders(audits['long-tasks'], 3);
+      const scripts = concreteOffenders(audits['bootup-time'], 3);
+      const named = tasks.length ? ` Longest task(s): ${tasks.join(', ')}.`
+        : scripts.length ? ` Scripts responsible: ${scripts.join(', ')}.` : '';
       out.push({
         agent: 'trace', severity: cpu.totalBlockingTime >= 600 ? 'critical' : 'warning',
         title: 'Main thread blocked during load',
-        detail: `Total Blocking Time is ${fmtMs(cpu.totalBlockingTime)} across ${cpu.longTaskCount} long task(s) (warning ≥ 300ms, critical ≥ 600ms). Long tasks delay interactivity — split work with scheduler.yield()/setTimeout, defer non-critical scripts, or move work to a worker.`,
+        detail: `Total Blocking Time is ${fmtMs(cpu.totalBlockingTime)} across ${cpu.longTaskCount} long task(s) (warning ≥ 300ms, critical ≥ 600ms). Long tasks delay interactivity — split work with scheduler.yield()/setTimeout, defer non-critical scripts, or move work to a worker.${named}`,
         effort: 'high', confidence: 0.9, impact: 'directly improves INP and TBT',
         learnMore: 'https://web.dev/articles/tbt',
       });
     }
     if (cpu.scriptingTime >= 500) {
+      // Name the heaviest scripts by main-thread time (bootup-time audit).
+      const scripts = concreteOffenders(audits['bootup-time'], 3);
       out.push({
         agent: 'trace', severity: cpu.scriptingTime >= 1500 ? 'critical' : 'warning',
         title: 'Heavy JavaScript execution during load',
-        detail: `${fmtMs(cpu.scriptingTime)} of main-thread JS execution (warning ≥ 500ms, critical ≥ 1500ms). Audit bundles for unused code and consider code-splitting the initial route.`,
+        detail: `${fmtMs(cpu.scriptingTime)} of main-thread JS execution (warning ≥ 500ms, critical ≥ 1500ms). Audit bundles for unused code and consider code-splitting the initial route.${scripts.length ? ` Heaviest script(s): ${scripts.join(', ')}.` : ''}`,
         effort: 'high', confidence: 0.85, impact: 'reduces TBT and time to interactive',
         learnMore: 'https://web.dev/articles/optimize-long-tasks',
       });
     }
     if (cpu.domNodes >= 2500) {
+      // Name the widest/deepest elements from the dom-size audit.
+      const hotspots = concreteOffenders(audits['dom-size'], 3);
       out.push({
         agent: 'trace', severity: cpu.domNodes >= 5000 ? 'critical' : 'warning',
         title: 'Very large DOM',
-        detail: `${cpu.domNodes.toLocaleString()} DOM nodes (warning ≥ 2,500, critical ≥ 5,000). Large DOMs slow style recalculation and layout on every update — virtualize long lists and defer below-the-fold content.`,
+        detail: `${cpu.domNodes.toLocaleString()} DOM nodes (warning ≥ 2,500, critical ≥ 5,000). Large DOMs slow style recalculation and layout on every update — virtualize long lists and defer below-the-fold content.${hotspots.length ? ` Hotspots — ${hotspots.join('; ')}.` : ''}`,
         effort: 'medium', confidence: 0.85, impact: 'reduces rendering and style recalc time',
         learnMore: 'https://web.dev/articles/dom-size',
       });
